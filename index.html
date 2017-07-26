@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        canvas {
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+<canvas width="800" height="600">
+    通过属性设置的canvas
+</canvas>
+
+
+<script>
+    var canvas = document.querySelector("canvas")
+    var cvs = canvas.getContext("2d");
+
+    function Clock(obj)
+    {
+        //混入继承
+        for(var key in obj)
+        {
+            this[key]=obj[key]
+        }
+        this.init();
+    }
+    Clock.prototype={
+        constructor:Clock,
+        //初始化
+        init:function(){
+           var _this=this;
+            setInterval(function(){
+                cvs.clearRect(0,0,canvas.width,canvas.height)
+                _this.drawBigcircle();
+                _this.drawPointer();
+                _this.drawHand();
+            },1000)
+
+        },
+        //画圆
+        drawBigcircle:function(){
+
+            cvs.beginPath();
+            cvs.save();
+            cvs.strokeStyle="skyblue";
+            cvs.lineWidth=10;
+            cvs.arc(this.bigX,this.bigY,this.bigR+5,0,2*Math.PI);
+            cvs.stroke();
+            cvs.restore();
+        },
+        //画指针
+        drawPointer:function(){
+
+            var begin=-Math.PI/2-2*Math.PI/60;
+
+            for(var i=0;i<60;i++)
+            {
+                var beginsingle=begin+Math.PI/30*(i+1); //Math.PI/30为每个刻度的弧度值
+                var pointerwidth;
+                var pointerlength;
+//                这里判断刻度为5的倍数的时候画 出数字
+                if(i%5==0)
+                {
+                     pointerwidth=this.pointer.bwidth||8;
+                     pointerlength=this.pointer.blength||40;
+                     var h3=Math.sin(beginsingle)*(this.bigR-pointerlength-15);
+                     var b3 =Math.cos(beginsingle)*(this.bigR-pointerlength-15);
+                     var x3=this.bigX+b3;
+                     var y3=this.bigY+h3;
+                     this.drawText(i/5,x3,y3)
+
+                }
+                else{
+                    pointerwidth=this.pointer.swidth||4;
+                    pointerlength=this.pointer.slength||20;
+                }
+//                刻度针起点
+                var h1=Math.sin(beginsingle)*this.bigR;
+                var b1=Math.cos(beginsingle)*this.bigR;
+                var x1=this.bigX+b1;
+                var y1=this.bigY+h1;
+//                刻度针末点
+
+                var h2=Math.sin(beginsingle)*(this.bigR-pointerlength);
+                var b2=Math.cos(beginsingle)*(this.bigR-pointerlength);
+                var x2=this.bigX+b2;
+                var y2=this.bigY+h2;
+
+                cvs.beginPath();
+                cvs.lineWidth=pointerwidth;
+                cvs.moveTo(x1,y1);
+                cvs.lineTo(x2,y2);
+                cvs.stroke();
+
+            }
+        },
+        //画文字
+        drawText:function(text,x,y){
+
+            cvs.beginPath();
+            cvs.save();
+            cvs.textAlign="center";
+            cvs.textBaseline="middle";
+            cvs.font="20px 微软雅黑";
+            cvs.fillText(text,x,y);
+            cvs.fillStyle="red";
+            cvs.fill();
+            cvs.restore();
+        },
+        //画时针 分针 秒针
+        drawHand:function(){
+            var data=new Date();
+            var hour=data.getHours()%12;  //时
+            var minute=data.getMinutes(); //分
+            var second=data.getSeconds(); //秒
+//            起始位置
+            var begin=-Math.PI/2;
+//            秒针
+            var secondsingle=begin+second/60*2*Math.PI;
+            var sh=Math.sin(secondsingle)*120;
+            var sb=Math.cos(secondsingle)*120;
+            var sx=this.bigX+sb;
+            var sy=this.bigY+sh;
+            var colors="red";
+            var linewidth=3;
+            this.drawNeedle(sx,sy,colors,linewidth);
+//              分钟
+            var minutesingle=begin+(minute+second/60)/60*2*Math.PI;
+            var mh=Math.sin(minutesingle)*100;
+            var mb=Math.cos(minutesingle)*100;
+            var mx=this.bigX+mb;
+            var my=this.bigY+mh;
+            var colors="black";
+            var linewidth=4;
+            this.drawNeedle(mx,my,colors,linewidth);
+            //时针
+            var hoursingle=begin+(hour+minute/60+second/3600)/12*2*Math.PI;
+            var hh=Math.sin(hoursingle)*80;
+            var hb=Math.cos(hoursingle)*80;
+            var linewidth=6;
+            var hx=this.bigX+hb;
+            var hy=this.bigY+hh;
+            this.drawNeedle(hx,hy,colors,linewidth);
+        },
+        drawNeedle:function(x, y,colors,linewidth){
+
+            cvs.beginPath();
+            cvs.save();
+            cvs.lineWidth=linewidth;
+            cvs.strokeStyle=colors;
+            cvs.moveTo(this.bigX,this.bigY);
+            cvs.lineTo(x,y);
+            cvs.stroke();
+            cvs.restore();
+        }
+    }
+    new Clock({
+        bigR:200,
+        bigX:350,
+        bigY:300,
+        pointer:{
+            bwidth:8,
+            blength:40,
+            swidth:4,
+            slength:20,
+        }
+    })
+</script>
+</body>
+</html>
